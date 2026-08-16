@@ -92,7 +92,9 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageBase64: base64,
+          sampleId: sample.id,
           documentTypeOverride: sample.category,
+          configOverride: config,
           agentName: currentUser.name,
           agentId: currentUser.id
         })

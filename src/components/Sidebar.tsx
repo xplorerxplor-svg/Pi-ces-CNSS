@@ -7,7 +7,8 @@ import {
   FileText, 
   ShieldCheck, 
   CheckCircle2,
-  FileCheck2
+  FileCheck2,
+  Smartphone
 } from 'lucide-react';
 
 export type ActiveTab = 
@@ -22,12 +23,14 @@ interface SidebarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
   pendingHumanCheckCount: number;
+  onOpenAndroidExport?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
-  pendingHumanCheckCount
+  pendingHumanCheckCount,
+  onOpenAndroidExport
 }) => {
   return (
     <aside className="w-64 bg-[#0F172A] text-slate-300 flex flex-col border-r border-slate-800 select-none shrink-0 h-full">
@@ -135,6 +138,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <ShieldCheck className="w-4 h-4 text-sky-400" />
           <span>Journal d'Audit (RGPD)</span>
         </button>
+
+        {onOpenAndroidExport && (
+          <div className="pt-4">
+            <button
+              onClick={onOpenAndroidExport}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30 border border-blue-500/40 text-blue-300 text-left text-xs font-bold transition-all cursor-pointer shadow-sm group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Smartphone className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                <span>Tester sur Android</span>
+              </div>
+              <span className="text-[9px] bg-blue-500 text-white px-1.5 py-0.5 rounded font-mono">
+                APK / PWA
+              </span>
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Server Status Footer */}

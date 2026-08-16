@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wifi, UserCheck, Shield, ChevronDown } from 'lucide-react';
+import { Wifi, UserCheck, Shield, ChevronDown, Smartphone } from 'lucide-react';
 import { UserProfile } from '../types.js';
 
 interface HeaderProps {
@@ -7,6 +7,7 @@ interface HeaderProps {
   subtitle?: string;
   currentUser: UserProfile;
   onSwitchUser: (user: UserProfile) => void;
+  onOpenAndroidExport?: () => void;
   isOnline?: boolean;
 }
 
@@ -39,12 +40,13 @@ export const Header: React.FC<HeaderProps> = ({
   subtitle,
   currentUser,
   onSwitchUser,
+  onOpenAndroidExport,
   isOnline = true
 }) => {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 z-10">
+    <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between shrink-0 z-10">
       <div>
         <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
           {title}
@@ -54,9 +56,22 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Bouton Exporter vers Android */}
+        {onOpenAndroidExport && (
+          <button
+            onClick={onOpenAndroidExport}
+            className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm shadow-blue-200 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+            title="Tester et installer sur smartphone Android"
+          >
+            <Smartphone className="w-4 h-4 text-white" />
+            <span className="hidden sm:inline">Tester sur Android</span>
+            <span className="text-[9px] bg-white/20 px-1.5 py-0.2 rounded font-mono">APK / PWA</span>
+          </button>
+        )}
+
         {/* Status Réseau */}
-        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+        <div className={`hidden md:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
           isOnline 
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
             : 'bg-rose-50 text-rose-700 border-rose-200'

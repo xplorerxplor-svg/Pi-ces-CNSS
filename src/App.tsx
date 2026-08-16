@@ -4,6 +4,7 @@ import { Header, USERS_LIST } from './components/Header.js';
 import { ScannerView } from './components/ScannerView.js';
 import { AnalysisResultView } from './components/AnalysisResultView.js';
 import { ManualValidationModal } from './components/ManualValidationModal.js';
+import { AndroidExportModal } from './components/AndroidExportModal.js';
 import { HistoryView } from './components/HistoryView.js';
 import { DashboardView } from './components/DashboardView.js';
 import { RulesConfigView } from './components/RulesConfigView.js';
@@ -16,6 +17,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('scanner');
   const [currentResult, setCurrentResult] = useState<DocumentAnalysisResult | null>(null);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile>(USERS_LIST[0]);
   const [pendingHumanCheckCount, setPendingHumanCheckCount] = useState(1);
   const [config, setConfig] = useState<RuleConfiguration>({
@@ -177,6 +179,7 @@ export default function App() {
           }
         }}
         pendingHumanCheckCount={pendingHumanCheckCount}
+        onOpenAndroidExport={() => setIsAndroidModalOpen(true)}
       />
 
       {/* Zone Principale */}
@@ -187,6 +190,7 @@ export default function App() {
           title={getPageTitle()}
           currentUser={currentUser}
           onSwitchUser={(user) => setCurrentUser(user)}
+          onOpenAndroidExport={() => setIsAndroidModalOpen(true)}
           isOnline={true}
         />
 
@@ -253,6 +257,12 @@ export default function App() {
           onConfirm={handleConfirmManualDecision}
         />
       )}
+
+      {/* Modal d'exportation & test Android */}
+      <AndroidExportModal
+        isOpen={isAndroidModalOpen}
+        onClose={() => setIsAndroidModalOpen(false)}
+      />
 
     </div>
   );

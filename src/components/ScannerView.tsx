@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Camera, 
   UploadCloud, 
@@ -8,10 +8,16 @@ import {
   RefreshCw, 
   Sliders, 
   Eye, 
-  Zap, 
+  Zap,
+  ZapOff, 
   Scan,
   Maximize2,
-  FileText
+  Minimize2,
+  FileText,
+  CameraOff,
+  SwitchCamera,
+  AlertCircle,
+  Smartphone
 } from 'lucide-react';
 import { DocumentAnalysisResult, DocumentType, RuleConfiguration } from '../types.js';
 import { SAMPLE_DOCUMENTS } from '../lib/sampleDocuments.js';
@@ -29,8 +35,18 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   const [imageFileName, setImageFileName] = useState<string>('');
   const [currentSampleId, setCurrentSampleId] = useState<string | undefined>(undefined);
   const [isDragging, setIsDragging] = useState(false);
+  
+  // États Caméra
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isTorchOn, setIsTorchOn] = useState(false);
+  const [hasTorch, setHasTorch] = useState(false);
+  const [isFullscreenCamera, setIsFullscreenCamera] = useState(false);
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState<number>(0);
   const [qualityFeedback, setQualityFeedback] = useState<{
@@ -52,15 +68,39 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Détection des caméras disponibles sur l'appareil
+  const enumerateCameras = useCallback(async () => {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter(device => device.kind === 'videoinput');
+        setVideoDevices(videoInputs);
+        if (videoInputs.length > 0 && !selectedDeviceId) {
+          // Préférer la caméra arrière sur mobile si détectée
+          const backCam = videoInputs.find(d => 
+            d.label.toLowerCase().includes('back') || 
+            d.label.toLowerCase().includes('arrière') ||
+            d.label.toLowerCase().includes('environment')
+          );
+          setSelectedDeviceId(backCam ? backCam.deviceId : videoInputs[0].deviceId);
+        }
+      }
+    } catch (err) {
+      console.warn('Impossible d\'énumérer les caméras:', err);
+    }
+  }, [selectedDeviceId]);
 
   // Nettoyage de la caméra au démontage
   useEffect(() => {
+    enumerateCameras();
     return () => {
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [cameraStream]);
+  }, [cameraStream, enumerateCameras]);
 
   // Étapes d'analyse pour la barre de progression
   const ANALYSIS_STEPS = [
@@ -71,24 +111,105 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     { title: 'Moteur de Règles Métier', desc: 'Validation déterministe des critères obligatoires' }
   ];
 
-  // Gestion du flux Caméra
-  const startCamera = async () => {
+  // Gestion du flux Caméra en Direct avec accès matériel complet
+  const startCamera = async (overrideFacing?: 'environment' | 'user', overrideDeviceId?: string) => {
+    setCameraError(null);
+    setIsTorchOn(false);
+
+    // Arrêter le flux existant si actif
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+
+    const currentFacing = overrideFacing || facingMode;
+    const currentDevice = overrideDeviceId !== undefined ? overrideDeviceId : selectedDeviceId;
+
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-        });
-        setCameraStream(stream);
-        setIsCameraActive(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } else {
-        alert('L\'accès à la caméra n\'est pas supporté par ce navigateur.');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Votre navigateur ou environnement ne supporte pas l\'accès direct à la caméra.');
       }
-    } catch (err) {
-      console.warn('Impossible d\'ouvrir la caméra, bascule sur capture simulée:', err);
+
+      // Configuration des contraintes vidéo avec repli progressif
+      const constraints: MediaStreamConstraints = {
+        audio: false,
+        video: currentDevice
+          ? { deviceId: { exact: currentDevice }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+          : { facingMode: { ideal: currentFacing }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+      };
+
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (firstErr) {
+        // Repli sur contraintes simples si les résolutions idéales échouent
+        console.warn('Repli sur contraintes caméra de base:', firstErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: currentFacing }
+        });
+      }
+
+      setCameraStream(stream);
       setIsCameraActive(true);
+
+      // Vérifier le support de la torche / flash
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        const capabilities = (track.getCapabilities ? track.getCapabilities() : {}) as any;
+        if (capabilities && capabilities.torch) {
+          setHasTorch(true);
+        } else {
+          setHasTorch(false);
+        }
+      }
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.warn('Erreur lecture vidéo:', e));
+        };
+      }
+
+      // Mettre à jour la liste des périphériques
+      enumerateCameras();
+
+    } catch (err: any) {
+      console.error('Erreur accès caméra:', err);
+      let message = 'Impossible d\'accéder à la caméra de votre appareil.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        message = 'Accès à la caméra refusé. Veuillez autoriser l\'accès dans les paramètres de votre navigateur ou utiliser le déclencheur natif ci-dessous.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        message = 'Aucune caméra détectée sur ce périphérique.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        message = 'La caméra est déjà utilisée par une autre application.';
+      }
+      setCameraError(message);
+      setIsCameraActive(false);
+    }
+  };
+
+  // Basculer entre Caméra Arrière et Caméra Avant
+  const toggleCameraFacing = async () => {
+    const nextFacing = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextFacing);
+    setSelectedDeviceId('');
+    await startCamera(nextFacing, '');
+  };
+
+  // Basculer la torche / flash si disponible
+  const toggleTorch = async () => {
+    if (!cameraStream) return;
+    const track = cameraStream.getVideoTracks()[0];
+    if (track) {
+      try {
+        const nextTorch = !isTorchOn;
+        await (track as any).applyConstraints({
+          advanced: [{ torch: nextTorch }]
+        });
+        setIsTorchOn(nextTorch);
+      } catch (err) {
+        console.warn('Impossible d\'activer le flash:', err);
+      }
     }
   };
 
@@ -98,23 +219,31 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
       setCameraStream(null);
     }
     setIsCameraActive(false);
+    setIsTorchOn(false);
+    setIsFullscreenCamera(false);
   };
 
   const capturePhoto = () => {
     setCurrentSampleId(undefined);
     if (videoRef.current && cameraStream) {
+      const video = videoRef.current;
       const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth || 800;
-      canvas.height = videoRef.current.videoHeight || 1130;
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        // Si caméra avant, effet miroir
+        if (facingMode === 'user') {
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
         setSelectedImage(dataUrl);
-        setImageFileName('Capture_Camera_' + new Date().toISOString().slice(0, 19) + '.jpg');
+        setImageFileName('Capture_Camera_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.jpg');
       }
     } else {
-      // Fallback capture démo
+      // Fallback démo
       const sample = SAMPLE_DOCUMENTS[0];
       setSelectedImage(sample.generateImage());
       setImageFileName(sample.title + '.png');
@@ -123,7 +252,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     evaluateImageQuality();
   };
 
-  // Gestion de l'upload de fichier
+  // Gestion de l'upload de fichier ou photo native
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -234,6 +363,17 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   return (
     <div className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto bg-slate-50 flex flex-col gap-4 sm:gap-6">
       
+      {/* Input natif caché pour déclenchement direct de l'appareil photo OS (Android/iOS) */}
+      <input
+        ref={nativeCameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+        aria-label="Prendre une photo avec l'appareil photo natif"
+      />
+
       {/* SECTION 1 : ZONE DE CAPTURE / IMPORTATION & APERÇU */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         
@@ -245,10 +385,43 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                 <Scan className="w-4 h-4 text-blue-600" />
                 Numérisation & Capture Documentaire
               </h2>
-              <span className="text-[11px] text-slate-500 font-mono">Module CameraX / OCR Vision</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Caméra Périphérique Active
+                </span>
+              </div>
             </div>
 
             <div className="p-4 sm:p-6">
+              
+              {/* Message d'erreur Caméra si refus ou problème */}
+              {cameraError && (
+                <div className="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="font-bold">Information Caméra :</strong> {cameraError}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1 border-t border-amber-200/60">
+                    <button
+                      onClick={() => nativeCameraInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      Utiliser l'Appareil Photo Natif du Téléphone
+                    </button>
+                    <button
+                      onClick={() => startCamera()}
+                      className="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 font-bold rounded-lg text-xs hover:bg-amber-100 cursor-pointer"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {!isCameraActive ? (
                 <div className="space-y-3.5 sm:space-y-4">
                   {/* Zone de Drag & Drop */}
@@ -281,56 +454,144 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                     </p>
                   </div>
 
-                  {/* Actions Caméra / Import */}
-                  <div className="flex gap-3">
+                  {/* Boutons d'Action Caméra */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                    {/* Bouton 1 : Viseur Caméra Live en direct */}
                     <button
-                      onClick={startCamera}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs sm:text-sm font-bold shadow-md shadow-blue-200 transition-all cursor-pointer min-h-[44px]"
+                      onClick={() => startCamera()}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs sm:text-sm font-bold shadow-md shadow-blue-200 transition-all cursor-pointer min-h-[44px]"
                     >
-                      <Camera className="w-4 h-4" />
-                      <span>Ouvrir la Caméra (CameraX Live)</span>
+                      <Camera className="w-4 h-4 shrink-0" />
+                      <span>Scanner en Direct (Caméra Live)</span>
+                    </button>
+
+                    {/* Bouton 2 : Déclencheur Photo Natif Mobile */}
+                    <button
+                      onClick={() => nativeCameraInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-900 active:scale-[0.99] text-white rounded-lg text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer min-h-[44px]"
+                    >
+                      <Smartphone className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Appareil Photo Natif (Smartphone)</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                /* Viseur Caméra en Direct */
-                <div className="relative aspect-[4/3] sm:aspect-[4/3] bg-slate-950 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+                /* Viseur Caméra en Direct avec Contrôles Avancés */
+                <div className={`relative bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center transition-all ${
+                  isFullscreenCamera ? 'fixed inset-0 z-50 rounded-none' : 'aspect-[4/3] sm:aspect-[4/3] w-full'
+                }`}>
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-full object-cover"
+                    muted
+                    className={`w-full h-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
                   />
 
-                  {/* Cadre de ciblage documentaire CameraX */}
-                  <div className="absolute inset-4 sm:inset-6 border-2 border-blue-400/70 rounded-lg pointer-events-none flex flex-col justify-between p-2.5 sm:p-3">
-                    <div className="flex justify-between items-center text-[10px] text-blue-300 font-mono bg-slate-900/70 px-2 py-0.5 rounded backdrop-blur">
-                      <span>CADRER LE DOCUMENT</span>
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        Auto-Focus
-                      </span>
+                  {/* Barre supérieure d'outils caméra */}
+                  <div className="absolute top-3 inset-x-3 sm:inset-x-4 flex items-center justify-between z-20">
+                    <div className="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1 rounded-lg backdrop-blur border border-slate-700/60 text-white text-[11px] font-mono">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      <span>{facingMode === 'environment' ? 'Caméra Arrière' : 'Caméra Avant'}</span>
                     </div>
-                    <div className="text-center text-[10px] sm:text-[11px] text-white/90 bg-slate-900/70 py-1 px-2 rounded backdrop-blur truncate">
-                      Tenez l'appareil bien droit et évitez les reflets
+
+                    <div className="flex items-center gap-2">
+                      {/* Bouton Flash / Torche si supporté */}
+                      {hasTorch && (
+                        <button
+                          onClick={toggleTorch}
+                          className={`p-2 rounded-lg backdrop-blur transition-all cursor-pointer ${
+                            isTorchOn 
+                              ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30' 
+                              : 'bg-slate-900/80 text-white hover:bg-slate-800'
+                          }`}
+                          title={isTorchOn ? 'Éteindre le flash' : 'Allumer le flash'}
+                          aria-label="Contrôle du flash"
+                        >
+                          {isTorchOn ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+                        </button>
+                      )}
+
+                      {/* Bouton Inverser Caméra (Avant/Arrière) */}
+                      <button
+                        onClick={toggleCameraFacing}
+                        className="p-2 rounded-lg bg-slate-900/80 text-white hover:bg-slate-800 backdrop-blur transition-all cursor-pointer flex items-center gap-1 text-xs"
+                        title="Basculer caméra avant / arrière"
+                        aria-label="Basculer de caméra"
+                      >
+                        <SwitchCamera className="w-4 h-4" />
+                      </button>
+
+                      {/* Bouton Plein Écran */}
+                      <button
+                        onClick={() => setIsFullscreenCamera(!isFullscreenCamera)}
+                        className="p-2 rounded-lg bg-slate-900/80 text-white hover:bg-slate-800 backdrop-blur transition-all cursor-pointer"
+                        title={isFullscreenCamera ? 'Quitter le plein écran' : 'Plein écran'}
+                        aria-label="Basculer le plein écran caméra"
+                      >
+                        {isFullscreenCamera ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 
-                  {/* Contrôles Caméra */}
-                  <div className="absolute bottom-3 sm:bottom-4 inset-x-0 flex items-center justify-center gap-4 z-10">
+                  {/* Cadre de ciblage documentaire CameraX avec repères optiques */}
+                  <div className="absolute inset-6 sm:inset-10 border-2 border-blue-400/80 rounded-xl pointer-events-none flex flex-col justify-between p-3 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]">
+                    {/* Coins de cadrage */}
+                    <div className="flex justify-between items-start">
+                      <div className="w-4 h-4 border-t-4 border-l-4 border-emerald-400 -mt-1 -ml-1"></div>
+                      <div className="text-[10px] text-blue-200 font-mono bg-slate-950/80 px-2.5 py-1 rounded backdrop-blur border border-blue-400/40">
+                        ALIGNER LE DOCUMENT
+                      </div>
+                      <div className="w-4 h-4 border-t-4 border-r-4 border-emerald-400 -mt-1 -mr-1"></div>
+                    </div>
+
+                    <div className="flex justify-between items-end">
+                      <div className="w-4 h-4 border-b-4 border-l-4 border-emerald-400 -mb-1 -ml-1"></div>
+                      <div className="text-center text-[10px] sm:text-[11px] text-white bg-slate-950/80 py-1 px-3 rounded backdrop-blur border border-slate-700 max-w-[85%] truncate">
+                        Évitez les ombres & reflets • Capture haute résolution
+                      </div>
+                      <div className="w-4 h-4 border-b-4 border-r-4 border-emerald-400 -mb-1 -mr-1"></div>
+                    </div>
+                  </div>
+
+                  {/* Contrôles Inférieurs Caméra */}
+                  <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-5 z-20 px-4">
                     <button
                       onClick={stopCamera}
-                      className="px-3.5 sm:px-4 py-2 bg-slate-800/80 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 backdrop-blur cursor-pointer min-h-[44px] min-w-[70px]"
+                      className="px-4 py-2.5 bg-slate-900/90 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 backdrop-blur border border-slate-700/80 cursor-pointer min-h-[44px]"
                     >
                       Annuler
                     </button>
+
+                    {/* Déclencheur Photo Haute Résolution */}
                     <button
                       onClick={capturePhoto}
-                      className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-white border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-                      aria-label="Prendre la photo"
+                      className="w-15 h-15 sm:w-16 sm:h-16 rounded-full bg-white border-4 border-blue-500 shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                      aria-label="Prendre la photo du document"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600"></div>
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                        <Camera className="w-6 h-6" />
+                      </div>
                     </button>
+
+                    {/* Sélecteur de Caméra si multiples caméras */}
+                    {videoDevices.length > 1 && (
+                      <select
+                        value={selectedDeviceId}
+                        onChange={(e) => {
+                          setSelectedDeviceId(e.target.value);
+                          startCamera(undefined, e.target.value);
+                        }}
+                        className="bg-slate-900/90 text-white text-[11px] rounded-xl px-2.5 py-2 border border-slate-700/80 backdrop-blur max-w-[130px] truncate cursor-pointer"
+                        aria-label="Sélectionner une caméra"
+                      >
+                        {videoDevices.map((d, i) => (
+                          <option key={d.deviceId || i} value={d.deviceId}>
+                            {d.label || `Caméra ${i + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
               )}
@@ -580,3 +841,4 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     </div>
   );
 };
+

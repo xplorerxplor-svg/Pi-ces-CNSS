@@ -18,23 +18,21 @@ export const TestSampleLibrary: React.FC<TestSampleLibraryProps> = ({
   onRunSample
 }) => {
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 flex flex-col gap-6">
+    <div className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto bg-slate-50 flex flex-col gap-4 sm:gap-6">
       
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-emerald-600" />
-            Bibliothèque d'Échantillons & Scénarios de Test
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Testez instantanément le pipeline OCR, la détection de signature et les règles métier sur des cas types.
-          </p>
-        </div>
+      <div>
+        <h2 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+          <FileCheck2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          Bibliothèque d'Échantillons & Scénarios de Test
+        </h2>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Testez instantanément le pipeline OCR, la détection de signature et les règles métier sur des cas types.
+        </p>
       </div>
 
       {/* GRILLE D'ÉCHANTILLONS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {SAMPLE_DOCUMENTS.map((sample) => (
           <div
             key={sample.id}
@@ -42,7 +40,7 @@ export const TestSampleLibrary: React.FC<TestSampleLibraryProps> = ({
           >
             <div>
               {/* Badge & Titre */}
-              <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-start justify-between">
+              <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex items-start justify-between">
                 <div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase ${
                     sample.expectedResult === 'VALIDE'
@@ -53,14 +51,14 @@ export const TestSampleLibrary: React.FC<TestSampleLibraryProps> = ({
                   }`}>
                     {sample.badge}
                   </span>
-                  <h3 className="text-sm font-bold text-slate-900 mt-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 mt-2">
                     {sample.title}
                   </h3>
                 </div>
               </div>
 
               {/* Description */}
-              <div className="p-5 space-y-3">
+              <div className="p-4 sm:p-5 space-y-3">
                 <p className="text-xs text-slate-600 leading-relaxed">
                   {sample.description}
                 </p>
@@ -75,10 +73,10 @@ export const TestSampleLibrary: React.FC<TestSampleLibraryProps> = ({
             </div>
 
             {/* Bouton de test */}
-            <div className="p-4 bg-slate-50 border-t border-slate-100">
+            <div className="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-100">
               <button
                 onClick={() => onRunSample(sample)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm shadow-blue-200 transition-colors cursor-pointer group-hover:scale-[1.02]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs font-bold shadow-xs shadow-blue-200 transition-all cursor-pointer min-h-[40px]"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
                 Lancer le Test & Contrôle IA

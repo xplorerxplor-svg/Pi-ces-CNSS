@@ -232,32 +232,32 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   };
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 flex flex-col gap-6">
+    <div className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto bg-slate-50 flex flex-col gap-4 sm:gap-6">
       
       {/* SECTION 1 : ZONE DE CAPTURE / IMPORTATION & APERÇU */}
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         
         {/* Colonne Gauche : Viseur Caméra / Zone de Dépôt (Col 7) */}
-        <div className="col-span-12 lg:col-span-7 flex flex-col gap-5">
+        <div className="lg:col-span-7 flex flex-col gap-4 sm:gap-5">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2 text-sm">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50/50">
+              <h2 className="font-semibold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
                 <Scan className="w-4 h-4 text-blue-600" />
                 Numérisation & Capture Documentaire
               </h2>
-              <span className="text-xs text-slate-500 font-mono">Module CameraX / OCR Vision</span>
+              <span className="text-[11px] text-slate-500 font-mono">Module CameraX / OCR Vision</span>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               {!isCameraActive ? (
-                <div className="space-y-4">
+                <div className="space-y-3.5 sm:space-y-4">
                   {/* Zone de Drag & Drop */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center text-center group min-h-[220px] ${
+                    className={`border-2 border-dashed rounded-xl p-5 sm:p-8 transition-all cursor-pointer flex flex-col items-center justify-center text-center group min-h-[180px] sm:min-h-[220px] ${
                       isDragging 
                         ? 'border-blue-600 bg-blue-50/80 scale-[0.99]' 
                         : 'border-slate-300 hover:border-blue-500 hover:bg-blue-50/40'
@@ -270,13 +270,13 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                       onChange={handleFileSelect}
                       className="hidden"
                     />
-                    <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <UploadCloud className="w-7 h-7" />
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 sm:mb-3 group-hover:scale-110 transition-transform">
+                      <UploadCloud className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-xs sm:text-sm font-bold text-slate-800">
                       Glissez-déposez le document ou <span className="text-blue-600 underline">parcourez</span>
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-[11px] text-slate-400 mt-1 max-w-xs sm:max-w-md">
                       Formats supportés : JPEG, PNG, TIFF, PDF (Haute résolution recommandée)
                     </p>
                   </div>
@@ -285,16 +285,16 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   <div className="flex gap-3">
                     <button
                       onClick={startCamera}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 transition-colors cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs sm:text-sm font-bold shadow-md shadow-blue-200 transition-all cursor-pointer min-h-[44px]"
                     >
                       <Camera className="w-4 h-4" />
-                      Ouvrir la Caméra (CameraX Live)
+                      <span>Ouvrir la Caméra (CameraX Live)</span>
                     </button>
                   </div>
                 </div>
               ) : (
                 /* Viseur Caméra en Direct */
-                <div className="relative aspect-[4/3] bg-slate-950 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+                <div className="relative aspect-[4/3] sm:aspect-[4/3] bg-slate-950 rounded-lg overflow-hidden flex flex-col items-center justify-center">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -303,32 +303,33 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   />
 
                   {/* Cadre de ciblage documentaire CameraX */}
-                  <div className="absolute inset-6 border-2 border-blue-400/70 rounded-lg pointer-events-none flex flex-col justify-between p-3">
-                    <div className="flex justify-between items-center text-[10px] text-blue-300 font-mono bg-slate-900/60 px-2 py-0.5 rounded backdrop-blur">
-                      <span>ALIGNER LE DOCUMENT ICI</span>
+                  <div className="absolute inset-4 sm:inset-6 border-2 border-blue-400/70 rounded-lg pointer-events-none flex flex-col justify-between p-2.5 sm:p-3">
+                    <div className="flex justify-between items-center text-[10px] text-blue-300 font-mono bg-slate-900/70 px-2 py-0.5 rounded backdrop-blur">
+                      <span>CADRER LE DOCUMENT</span>
                       <span className="flex items-center gap-1 text-emerald-400">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        Auto-Focus Actif
+                        Auto-Focus
                       </span>
                     </div>
-                    <div className="text-center text-[11px] text-white/80 bg-slate-900/60 py-1 rounded backdrop-blur">
+                    <div className="text-center text-[10px] sm:text-[11px] text-white/90 bg-slate-900/70 py-1 px-2 rounded backdrop-blur truncate">
                       Tenez l'appareil bien droit et évitez les reflets
                     </div>
                   </div>
 
                   {/* Contrôles Caméra */}
-                  <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-4 z-10">
+                  <div className="absolute bottom-3 sm:bottom-4 inset-x-0 flex items-center justify-center gap-4 z-10">
                     <button
                       onClick={stopCamera}
-                      className="px-4 py-2 bg-slate-800/80 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 backdrop-blur cursor-pointer"
+                      className="px-3.5 sm:px-4 py-2 bg-slate-800/80 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 backdrop-blur cursor-pointer min-h-[44px] min-w-[70px]"
                     >
                       Annuler
                     </button>
                     <button
                       onClick={capturePhoto}
-                      className="w-14 h-14 rounded-full bg-white border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                      className="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-white border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                      aria-label="Prendre la photo"
                     >
-                      <div className="w-10 h-10 rounded-full bg-blue-600"></div>
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-600"></div>
                     </button>
                   </div>
                 </div>
@@ -336,49 +337,49 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
             </div>
 
             {/* Raccourcis : Échantillons de Documents Prêts à Tester */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
-              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-50 border-t border-slate-100">
+              <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                 Échantillons Prêts pour Test Immédiat :
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <button
                   onClick={() => loadSample('sample-scolarite-conforme')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                   <span className="truncate">Scolarité (2026-2027)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-travail-complet')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                   <span className="truncate">Travail T1 (Complet)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-scolarite-mauvaise-annee')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                  <span className="truncate">Scolarité (2023-2024 ⚠)</span>
+                  <span className="truncate">Scolarité (2023 ⚠)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-travail-incomplet')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
                   <span className="truncate">Travail T1 (Incomplet)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-vie-charge-sans-signature')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                   <span className="truncate">Vie Charge (Sans Sign.)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-flou')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-1.5 truncate cursor-pointer min-h-[38px]"
                 >
                   <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                   <span className="truncate">Photo Floue / Bougée</span>
@@ -389,10 +390,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         </div>
 
         {/* Colonne Droite : Prévisualisation & Configuration du Contrôle (Col 5) */}
-        <div className="col-span-12 lg:col-span-5 flex flex-col gap-5">
+        <div className="lg:col-span-5 flex flex-col gap-4 sm:gap-5">
           
           {/* Aperçu du document sélectionné */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <label className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">
                 Aperçu du Document
@@ -404,7 +405,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
               )}
             </div>
 
-            <div className="aspect-[3/4] bg-slate-900 rounded-lg relative overflow-hidden flex items-center justify-center border border-slate-800">
+            <div className="aspect-[3/4] max-h-[360px] sm:max-h-[420px] bg-slate-900 rounded-lg relative overflow-hidden flex items-center justify-center border border-slate-800">
               {selectedImage ? (
                 <img
                   src={selectedImage}
@@ -422,7 +423,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
               )}
 
               {selectedImage && (
-                <div className="absolute bottom-2 left-2 text-[10px] font-mono bg-slate-950/70 text-slate-300 px-2 py-0.5 rounded backdrop-blur">
+                <div className="absolute bottom-2 left-2 text-[10px] font-mono bg-slate-950/70 text-slate-300 px-2 py-0.5 rounded backdrop-blur max-w-[90%] truncate">
                   {imageFileName || 'Document numérisé'}
                 </div>
               )}
@@ -430,7 +431,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
           </div>
 
           {/* Paramètres de validation spécifiques */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col gap-4">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col gap-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
               <Sliders className="w-4 h-4 text-blue-600" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -447,7 +448,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                 <select
                   value={targetTypeOverride}
                   onChange={(e) => setTargetTypeOverride(e.target.value as any)}
-                  className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none min-h-[40px]"
                 >
                   <option value="AUTO">🤖 Détection automatique par l'IA</option>
                   <option value="CERTIFICAT_SCOLARITE">Certificat de Scolarité</option>
@@ -457,7 +458,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
               </div>
 
               {/* Année scolaire demandée */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
                     Année Scolaire :
@@ -466,7 +467,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                     type="text"
                     value={targetSchoolYear}
                     onChange={(e) => setTargetSchoolYear(e.target.value)}
-                    className="w-full text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 min-h-[40px]"
                     placeholder="ex: 2026-2027"
                   />
                 </div>
@@ -479,7 +480,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   <select
                     value={targetQuarter}
                     onChange={(e) => setTargetQuarter(e.target.value as any)}
-                    className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2 text-slate-800 focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-xs font-bold bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-blue-500 min-h-[40px]"
                   >
                     <option value="T1">T1 (Jan - Fév - Mar)</option>
                     <option value="T2">T2 (Avr - Mai - Jun)</option>
@@ -494,9 +495,9 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
             <button
               onClick={handleStartAnalysis}
               disabled={!selectedImage || isAnalyzing}
-              className={`w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all ${
+              className={`w-full py-3 sm:py-3.5 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all min-h-[46px] ${
                 selectedImage && !isAnalyzing
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 cursor-pointer'
+                  ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white shadow-blue-200 cursor-pointer'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
@@ -518,19 +519,19 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
 
       {/* MODAL / BANNIÈRE D'ANALYSE EN COURS (Visualisation étape par étape) */}
       {isAnalyzing && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-8 max-w-lg w-full flex flex-col gap-6 animate-in zoom-in-95">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-8 max-w-lg w-full flex flex-col gap-4 sm:gap-6 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-200">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-200 shrink-0">
                 <RefreshCw className="w-5 h-5 animate-spin" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Traitement IA du Document</h3>
-                <p className="text-xs text-slate-500">Pipeline de vision, OCR et moteur de règles en cours</p>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">Traitement IA du Document</h3>
+                <p className="text-[11px] text-slate-500">Pipeline de vision, OCR et moteur de règles en cours</p>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {ANALYSIS_STEPS.map((step, idx) => {
                 const isDone = idx < analysisStep;
                 const isCurrent = idx === analysisStep;
@@ -538,7 +539,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                 return (
                   <div
                     key={idx}
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-lg border transition-all ${
                       isDone
                         ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
                         : isCurrent
@@ -548,11 +549,11 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   >
                     <div className="shrink-0">
                       {isDone ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                       ) : isCurrent ? (
-                        <div className="w-5 h-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
                       ) : (
-                        <div className="w-5 h-5 rounded-full border border-slate-300 text-[10px] flex items-center justify-center font-bold">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-slate-300 text-[10px] flex items-center justify-center font-bold">
                           {idx + 1}
                         </div>
                       )}

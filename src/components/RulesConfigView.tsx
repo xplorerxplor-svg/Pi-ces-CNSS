@@ -50,13 +50,13 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
   };
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 flex flex-col gap-6">
+    <div className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto bg-slate-50 flex flex-col gap-4 sm:gap-6">
       
       {/* HEADER */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-amber-500" />
+          <h2 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Sliders className="w-5 h-5 text-amber-500 shrink-0" />
             Paramétrage Dynamique des Règles Métier
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -65,33 +65,33 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
         </div>
 
         {!isAdmin && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
-            <Shield className="w-3.5 h-3.5" />
-            Mode Consultation (Connectez-vous en Admin pour éditer)
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 self-start sm:self-auto">
+            <Shield className="w-3.5 h-3.5 shrink-0" />
+            <span>Mode Consultation (Admin requis pour éditer)</span>
           </div>
         )}
       </div>
 
       {saveSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          Règles métier mises à jour avec succès et synchronisées sur l'ensemble des postes agents.
+        <div className="p-3.5 sm:p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Règles métier mises à jour avec succès et synchronisées.</span>
         </div>
       )}
 
       {/* FORMULAIRE DES RÈGLES */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         
         {/* 1. RÈGLES CERTIFICAT DE SCOLARITÉ */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <GraduationCap className="w-4 h-4 text-blue-600" />
-            <h3 className="text-sm font-bold text-slate-800">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-blue-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">
               Type 1 — Certificat de Scolarité
             </h3>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -113,7 +113,7 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
                 </span>
               </div>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2.5 pt-1 sm:pt-2">
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
@@ -148,14 +148,14 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
 
         {/* 2. RÈGLES CERTIFICAT DE TRAVAIL */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-emerald-600" />
-            <h3 className="text-sm font-bold text-slate-800">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+            <Briefcase className="w-4 h-4 text-emerald-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">
               Type 2 — Certificat de Travail Trimestriel
             </h3>
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -180,7 +180,7 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
                 </span>
               </div>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2.5 pt-1 sm:pt-2">
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
@@ -206,7 +206,7 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
                     })}
                     className="rounded text-emerald-600"
                   />
-                  <span>Mention explicite des heures travaillées obligatoire</span>
+                  <span>Mention des heures travaillées obligatoire</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -220,7 +220,7 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
                     })}
                     className="rounded text-emerald-600"
                   />
-                  <span>Signature de l'employeur / DRH requise</span>
+                  <span>Signature de l'employeur requise</span>
                 </label>
               </div>
             </div>
@@ -229,15 +229,15 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
 
         {/* 3. RÈGLES CERTIFICAT DE VIE ET DE CHARGE */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-600" />
-            <h3 className="text-sm font-bold text-slate-800">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+            <Users className="w-4 h-4 text-indigo-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">
               Type 3 — Certificat de Vie et de Charge
             </h3>
           </div>
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
@@ -263,7 +263,7 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
                   })}
                   className="rounded text-indigo-600"
                 />
-                <span>Recensement des enfants / personnes à charge obligatoire</span>
+                <span>Recensement des enfants obligatoire</span>
               </label>
 
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -285,14 +285,14 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
 
         {/* 4. SEUILS DE CONFIANCE & SÉCURITÉ */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-purple-600" />
-            <h3 className="text-sm font-bold text-slate-800">
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-purple-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-bold text-slate-800">
               Seuils de Décision Automatique & Confidentialité
             </h3>
           </div>
 
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">
                 Seuil Haute Confiance (Validation Auto) :
@@ -370,10 +370,10 @@ export const RulesConfigView: React.FC<RulesConfigViewProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-colors cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-all cursor-pointer min-h-[40px]"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Enregistrement des règles...' : 'Enregistrer les Règles Métier'}
+              <span>{isSaving ? 'Enregistrement...' : 'Enregistrer les Règles Métier'}</span>
             </button>
           </div>
         )}

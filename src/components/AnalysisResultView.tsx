@@ -77,98 +77,99 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
   };
 
   return (
-    <div className="flex-1 p-8 overflow-y-auto bg-slate-50 flex flex-col gap-6">
+    <div className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto bg-slate-50 flex flex-col gap-4 sm:gap-6">
       
       {/* HEADER RAPPORT & ACTIONS SUPÉRIEURES */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
             onClick={onRetake}
-            className="p-2 bg-white hover:bg-slate-100 rounded-lg border border-slate-200 text-slate-600 transition-colors shadow-sm"
+            className="p-2.5 bg-white hover:bg-slate-100 rounded-lg border border-slate-200 text-slate-600 transition-colors shadow-xs cursor-pointer"
             title="Revenir au scanner"
+            aria-label="Revenir"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
+            <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">
               Numéro de Dossier : {doc.id}
             </div>
-            <h2 className="text-lg font-bold text-slate-800">
+            <h2 className="text-base sm:text-lg font-bold text-slate-800">
               Résultat du Contrôle Automatique IA
             </h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={exportReportJSON}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer min-h-[40px]"
           >
             <Download className="w-3.5 h-3.5" />
-            Exporter JSON
+            <span>JSON</span>
           </button>
           <button
             onClick={onOpenManualValidation}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-colors"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-all cursor-pointer min-h-[40px]"
           >
             <UserCheck className="w-3.5 h-3.5" />
-            Arbitrage / Validation Manuelle
+            <span>Arbitrage Manuel</span>
           </button>
         </div>
       </div>
 
       {/* DÉCISION MANUELLE EXISTANTE (SI ARBITRÉ) */}
       {doc.manualDecision && (
-        <div className="p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-start justify-between">
+        <div className="p-3.5 sm:p-4 bg-purple-50 border border-purple-200 rounded-xl flex flex-col sm:flex-row sm:items-start justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
               OK
             </div>
             <div>
               <div className="text-xs font-bold text-purple-900 uppercase">
                 Décision Manuelle de l'Agent ({doc.manualDecision.type})
               </div>
-              <div className="text-sm text-purple-800 mt-0.5">
+              <div className="text-xs sm:text-sm text-purple-800 mt-0.5">
                 "{doc.manualDecision.comment}" — Validé par <span className="font-semibold">{doc.manualDecision.decidedBy}</span>
               </div>
             </div>
           </div>
-          <span className="text-xs text-purple-600 font-mono">
+          <span className="text-[11px] text-purple-600 font-mono self-end sm:self-auto">
             {new Date(doc.manualDecision.decidedAt).toLocaleTimeString('fr-FR')}
           </span>
         </div>
       )}
 
-      {/* SECTION PRINCIPALE : 2 COLONNES (8 + 4) */}
-      <div className="grid grid-cols-12 gap-6">
+      {/* SECTION PRINCIPALE : 2 COLONNES (8 + 4 sur grand écran, empilées sur mobile) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         
         {/* COLONNE GAUCHE (Col 8) : RAPPORT D'EXTRACTION & MOTEUR DE RÈGLES */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
+        <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-6">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
             
             {/* Titre carte */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="font-semibold text-slate-800 flex items-center gap-2 text-sm">
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-semibold text-slate-800 flex items-center gap-2 text-xs sm:text-sm">
                 <FileText className="w-4 h-4 text-blue-600" />
                 Rapport d'Extraction IA & Données Structurées
               </h3>
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="text-[11px] text-slate-500 font-mono">
                 {new Date(doc.createdAt).toLocaleTimeString('fr-FR')}
               </span>
             </div>
 
             {/* Corps carte : Champs extraits */}
-            <div className="p-6 flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="p-4 sm:p-6 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-y-4">
                 
                 {/* Type de Document */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                     Type de Document Détecté
                   </label>
-                  <div className="text-sm font-semibold text-slate-900 flex items-center justify-between bg-slate-50 p-2 rounded">
-                    <span>{doc.documentTypeLabel}</span>
-                    <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-mono font-bold">
+                  <div className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center justify-between bg-slate-50 p-2 sm:p-2.5 rounded border border-slate-100">
+                    <span className="truncate mr-2">{doc.documentTypeLabel}</span>
+                    <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-mono font-bold shrink-0">
                       {Math.round(doc.typeConfidence * 100)}%
                     </span>
                   </div>
@@ -196,14 +197,14 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
                     onMouseLeave={() => setActiveHoverField(null)}
                   >
                     <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center justify-between">
-                      <span>{field.label}</span>
+                      <span className="truncate">{field.label}</span>
                       {field.note && (
-                        <span className="text-[9px] text-purple-600 font-semibold lowercase">
+                        <span className="text-[9px] text-purple-600 font-semibold lowercase shrink-0">
                           ({field.note})
                         </span>
                       )}
                     </label>
-                    <div className={`flex items-center justify-between text-sm p-2 rounded border ${
+                    <div className={`flex items-center justify-between text-xs sm:text-sm p-2 sm:p-2.5 rounded border ${
                       field.status === 'invalid'
                         ? 'bg-rose-50/60 border-rose-200 text-rose-900'
                         : field.status === 'warning'
@@ -223,18 +224,18 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
                   <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                     Détection de Signature Manuscrite
                   </label>
-                  <div className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                  <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-lg border gap-1.5 ${
                     doc.signature.detected 
                       ? 'bg-emerald-50/50 border-emerald-200 text-emerald-900' 
                       : 'bg-rose-50/50 border-rose-200 text-rose-900'
                   }`}>
-                    <div className="flex items-center gap-2 text-sm font-semibold">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
                       <PenTool className="w-4 h-4 text-slate-600 shrink-0" />
                       <span>
                         {doc.signature.detected ? 'SIGNATURE DÉTECTÉE ✓' : 'SIGNATURE ABSENTE ✕'}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-500 italic max-w-sm text-right">
+                    <div className="text-[11px] text-slate-500 italic sm:text-right">
                       {doc.signature.disclaimer}
                     </div>
                   </div>
@@ -244,7 +245,7 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
             </div>
 
             {/* MOTEUR DE RÈGLES : CRITÈRES MÉTIER */}
-            <div className="p-6 bg-slate-50/70 border-t border-slate-100">
+            <div className="p-4 sm:p-6 bg-slate-50/70 border-t border-slate-100">
               <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center justify-between">
                 <span>Détail des Critères Métier Déterministes</span>
                 <span className="text-[10px] text-slate-400 font-normal">
@@ -258,7 +259,7 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
                     key={crit.id}
                     className="p-3 bg-white rounded-lg border border-slate-200 flex items-start justify-between gap-3 shadow-2xs"
                   >
-                    <div className="flex items-start gap-2.5">
+                    <div className="flex items-start gap-2.5 min-w-0">
                       <div className="mt-0.5 shrink-0">
                         {crit.status === 'PASS' ? (
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -268,16 +269,16 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
                           <AlertTriangle className="w-4 h-4 text-amber-600" />
                         )}
                       </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-800 flex items-center gap-2">
-                          {crit.title}
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-800 flex items-center gap-2 flex-wrap">
+                          <span>{crit.title}</span>
                           {crit.mandatory && (
                             <span className="text-[9px] bg-slate-100 text-slate-600 px-1 rounded font-normal">
                               Obligatoire
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 mt-0.5">{crit.message}</p>
+                        <p className="text-xs text-slate-600 mt-0.5 break-words">{crit.message}</p>
                       </div>
                     </div>
 
@@ -296,21 +297,21 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
             </div>
 
             {/* Pied de carte : Motif & Actions */}
-            <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm text-slate-600 w-full sm:w-auto">
+            <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="text-xs sm:text-sm text-slate-600">
                 <span className="font-bold text-slate-800">Synthèse décisionnelle : </span>
                 <span>{doc.primaryReason}</span>
               </div>
-              <div className="flex gap-3 shrink-0 w-full sm:w-auto">
+              <div className="flex gap-2.5 shrink-0">
                 <button
                   onClick={onRetake}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs"
+                  className="flex-1 sm:flex-none px-3.5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer min-h-[40px]"
                 >
                   REPRENDRE PHOTO
                 </button>
                 <button
                   onClick={onOpenManualValidation}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors"
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer min-h-[40px]"
                 >
                   VALIDATION MANUELLE
                 </button>
@@ -321,7 +322,7 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
         </div>
 
         {/* COLONNE DROITE (Col 4) : APERÇU DOCUMENT AVEC OVERLAYS + SCORES */}
-        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
+        <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-6">
           
           {/* Carte Aperçu & Bounding Boxes */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col">
@@ -331,14 +332,14 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
               </label>
               <button
                 onClick={() => setShowBoundingBoxes(!showBoundingBoxes)}
-                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-800"
+                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
               >
                 {showBoundingBoxes ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                 {showBoundingBoxes ? 'Masquer boîtes' : 'Afficher boîtes'}
               </button>
             </div>
 
-            <div className="aspect-[3/4] bg-slate-900 rounded-lg relative overflow-hidden flex items-center justify-center border border-slate-800 select-none">
+            <div className="aspect-[3/4] max-h-[380px] sm:max-h-[440px] bg-slate-900 rounded-lg relative overflow-hidden flex items-center justify-center border border-slate-800 select-none">
               {doc.imageThumbnail ? (
                 <div className="relative w-full h-full">
                   <img
@@ -409,22 +410,22 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
               )}
 
               {/* Badges de contrôle sur l'image */}
-              <div className="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+              <div className="absolute top-2.5 right-2.5 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
                 QUALITÉ : {doc.quality.overallQuality}
               </div>
-              <div className="absolute bottom-3 left-3 text-white text-[9px] font-mono bg-slate-900/80 px-2 py-0.5 rounded">
+              <div className="absolute bottom-2.5 left-2.5 text-white text-[9px] font-mono bg-slate-900/80 px-2 py-0.5 rounded">
                 PROCESSED AT {new Date(doc.createdAt).toLocaleTimeString('fr-FR')}
               </div>
             </div>
           </div>
 
           {/* Jauges de confiance & Intégrité */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col gap-4">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col gap-3.5 sm:gap-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 uppercase">
                 Score de Confiance Global
               </span>
-              <span className={`text-lg font-black ${
+              <span className={`text-base sm:text-lg font-black ${
                 doc.overallConfidence >= 0.88 ? 'text-emerald-600' : doc.overallConfidence >= 0.70 ? 'text-amber-500' : 'text-rose-600'
               }`}>
                 {Math.round(doc.overallConfidence * 100)}%
@@ -441,15 +442,15 @@ export const AnalysisResultView: React.FC<AnalysisResultViewProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-1">
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <div className="p-2.5 sm:p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <div className="text-[10px] text-slate-400 font-bold uppercase">Lisibilité OCR</div>
-                <div className="text-lg font-bold text-slate-700">
+                <div className="text-base sm:text-lg font-bold text-slate-700">
                   {doc.quality.sharpnessScore}%
                 </div>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <div className="p-2.5 sm:p-3 bg-slate-50 rounded-lg border border-slate-100">
                 <div className="text-[10px] text-slate-400 font-bold uppercase">Cadrage</div>
-                <div className="text-lg font-bold text-slate-700">
+                <div className="text-base sm:text-lg font-bold text-slate-700">
                   {doc.quality.framingScore}%
                 </div>
               </div>

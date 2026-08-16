@@ -10,6 +10,7 @@ import { DashboardView } from './components/DashboardView.js';
 import { RulesConfigView } from './components/RulesConfigView.js';
 import { TestSampleLibrary } from './components/TestSampleLibrary.js';
 import { AuditLogView } from './components/AuditLogView.js';
+import { Scan, History, BarChart3, Sliders, Layers } from 'lucide-react';
 import { DocumentAnalysisResult, ManualDecisionType, RuleConfiguration, UserProfile } from './types.js';
 import { SampleDocDefinition } from './lib/sampleDocuments.js';
 
@@ -18,6 +19,7 @@ export default function App() {
   const [currentResult, setCurrentResult] = useState<DocumentAnalysisResult | null>(null);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isAndroidModalOpen, setIsAndroidModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile>(USERS_LIST[0]);
   const [pendingHumanCheckCount, setPendingHumanCheckCount] = useState(1);
   const [config, setConfig] = useState<RuleConfiguration>({
@@ -167,19 +169,19 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-50 font-sans overflow-hidden text-slate-900">
+    <div className="flex h-[100dvh] w-screen bg-slate-50 font-sans overflow-hidden text-slate-900">
       
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation (Desktop permanent & Mobile drawer) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
-          if (tab === 'scanner' && currentResult) {
-            // keep current view or reset
-          }
+          setIsMobileMenuOpen(false);
         }}
         pendingHumanCheckCount={pendingHumanCheckCount}
         onOpenAndroidExport={() => setIsAndroidModalOpen(true)}
+        isOpenMobile={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Zone Principale */}
@@ -191,11 +193,12 @@ export default function App() {
           currentUser={currentUser}
           onSwitchUser={(user) => setCurrentUser(user)}
           onOpenAndroidExport={() => setIsAndroidModalOpen(true)}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           isOnline={true}
         />
 
         {/* Corps de l'onglet actif */}
-        <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative pb-14 lg:pb-0">
           
           {activeTab === 'scanner' && (
             currentResult ? (
@@ -245,6 +248,60 @@ export default function App() {
           )}
 
         </main>
+
+        {/* Barre de navigation basse pour Smartphones / Tablettes */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 h-14 bg-[#0F172A] border-t border-slate-800 flex items-center justify-around px-2 z-30 select-none shadow-lg">
+          <button
+            onClick={() => setActiveTab('scanner')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'scanner' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Scan className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Scanner</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors relative cursor-pointer ${
+              activeTab === 'history' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Dossiers</span>
+            {pendingHumanCheckCount > 0 && (
+              <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('samples')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'samples' ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Échantillons</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'dashboard' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Stats</span>
+          </button>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+          >
+            <Sliders className="w-4 h-4" />
+            <span className="text-[10px] mt-0.5">Menu</span>
+          </button>
+        </div>
 
       </div>
 

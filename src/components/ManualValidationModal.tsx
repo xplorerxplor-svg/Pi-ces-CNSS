@@ -219,30 +219,30 @@ export const ManualValidationModal: React.FC<ManualValidationModalProps> = ({
           </div>
 
           {/* Footer Modal */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-[11px] text-slate-400">
+          <div className="pt-2 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="text-[11px] text-slate-400 text-center sm:text-left">
               Opérateur : <span className="font-semibold text-slate-700">{currentUser.name}</span>
             </div>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50"
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 min-h-[40px] flex items-center justify-center cursor-pointer"
               >
                 Annuler
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-colors flex items-center gap-2"
+                className="flex-1 sm:flex-none px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white rounded-lg text-xs font-bold shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2 min-h-[40px] cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    Enregistrement...
+                    <span>Enregistrement...</span>
                   </>
                 ) : (
-                  'Confirmer la Décision'
+                  <span>Confirmer la Décision</span>
                 )}
               </button>
             </div>

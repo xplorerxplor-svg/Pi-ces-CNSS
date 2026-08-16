@@ -68,44 +68,44 @@ export const AndroidExportModal: React.FC<AndroidExportModalProps> = ({ isOpen, 
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 bg-slate-50 px-6 pt-3 gap-2">
+        <div className="flex border-b border-slate-200 bg-slate-50 px-4 sm:px-6 pt-3 gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('pwa')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+            className={`px-3 sm:px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === 'pwa'
                 ? 'bg-white text-blue-600 border-blue-600 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 border-transparent'
             }`}
           >
             <QrCode className="w-4 h-4" />
-            1. Accès Immédiat & PWA (Recommandé)
+            1. PWA & Accès Direct
           </button>
 
           <button
             onClick={() => setActiveTab('capacitor')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+            className={`px-3 sm:px-4 py-2.5 text-xs font-bold rounded-t-lg transition-all border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === 'capacitor'
                 ? 'bg-white text-blue-600 border-blue-600 shadow-sm'
                 : 'text-slate-600 hover:text-slate-900 border-transparent'
             }`}
           >
             <Layers className="w-4 h-4" />
-            2. Projet Android Studio (Capacitor)
+            2. Android Studio (Capacitor)
           </button>
         </div>
 
         {/* Body Content */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 flex-1 text-slate-800">
           
           {activeTab === 'pwa' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Scan QR Code */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-blue-50/50 p-5 rounded-xl border border-blue-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-center bg-blue-50/50 p-4 sm:p-5 rounded-xl border border-blue-100">
                 <div className="flex flex-col items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-slate-200">
                   <img 
                     src={qrCodeUrl} 
                     alt="QR Code d'accès mobile" 
-                    className="w-44 h-44 rounded-lg"
+                    className="w-36 h-36 sm:w-44 sm:h-44 rounded-lg"
                     referrerPolicy="no-referrer"
                   />
                   <span className="text-[11px] font-medium text-slate-500 mt-2 flex items-center gap-1">
@@ -113,7 +113,7 @@ export const AndroidExportModal: React.FC<AndroidExportModalProps> = ({ isOpen, 
                   </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                     <Smartphone className="w-4 h-4 text-blue-600" />
                     Comment installer en 30 secondes :
@@ -121,8 +121,8 @@ export const AndroidExportModal: React.FC<AndroidExportModalProps> = ({ isOpen, 
                   <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside leading-relaxed font-normal">
                     <li><strong className="text-slate-800">Scannez le QR code</strong> ou ouvrez l'URL dans Google Chrome sur Android.</li>
                     <li>Appuyez sur le menu Chrome (<strong className="text-slate-800">les 3 points ⋮</strong> en haut à droite).</li>
-                    <li>Sélectionnez <strong className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold">« Ajouter à l'écran d'accueil »</strong> ou <strong className="text-blue-700 font-semibold">« Installer l'application »</strong>.</li>
-                    <li>L'application s'exécutera en plein écran avec accès direct au capteur photo arrière (CameraX).</li>
+                    <li>Sélectionnez <strong className="text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold">« Ajouter à l'écran d'accueil »</strong> ou <strong className="text-blue-700 font-semibold">« Installer »</strong>.</li>
+                    <li>L'application s'exécutera en plein écran avec accès direct au capteur photo arrière.</li>
                   </ol>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export const AndroidExportModal: React.FC<AndroidExportModalProps> = ({ isOpen, 
                   />
                   <button
                     onClick={copyUrl}
-                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 min-h-[38px]"
                   >
                     {copied ? (
                       <>
@@ -147,7 +147,7 @@ export const AndroidExportModal: React.FC<AndroidExportModalProps> = ({ isOpen, 
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" /> Copier le lien
+                        <Copy className="w-3.5 h-3.5" /> Copier
                       </>
                     )}
                   </button>

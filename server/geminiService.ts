@@ -54,7 +54,8 @@ export class GeminiDocumentService {
   public static async analyzeDocument(
     base64Data: string,
     mimeType: string = 'image/jpeg',
-    manualTypeOverride?: DocumentType
+    manualTypeOverride?: DocumentType,
+    sampleId?: string
   ): Promise<{
     documentType: DocumentType;
     typeConfidence: number;
@@ -65,6 +66,14 @@ export class GeminiDocumentService {
   }> {
     const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
     const client = getGeminiClient();
+
+    // If a known sampleId is passed without external key or in fallback mode
+    if (sampleId) {
+      const sampleResult = this.getExtractionForSampleId(sampleId);
+      if (sampleResult) {
+        return sampleResult;
+      }
+    }
 
     if (client && process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY') {
       try {
@@ -445,4 +454,400 @@ Réponds UNIQUEMENT avec un JSON valide suivant cette structure :
       rawExtractionSummary: 'Document non reconnu.'
     };
   }
+
+  /**
+   * Retourne l'extraction exacte correspondant à l'un des 6 scénarios de test pré-configurés.
+   */
+  public static getExtractionForSampleId(sampleId: string): {
+    documentType: DocumentType;
+    typeConfidence: number;
+    extractedFields: ExtractedField[];
+    signature: SignatureDetectionInfo;
+    quality: QualityMetrics;
+    rawExtractionSummary: string;
+  } | null {
+    switch (sampleId) {
+      case 'sample-scolarite-conforme':
+        return {
+          documentType: 'CERTIFICAT_SCOLARITE',
+          typeConfidence: 0.98,
+          quality: {
+            sharpnessScore: 95,
+            isBlurry: false,
+            lightingQuality: 'BONNE',
+            orientationCorrect: true,
+            framingScore: 96,
+            overallQuality: 'BONNE',
+            warnings: []
+          },
+          extractedFields: [
+            {
+              key: 'student_name',
+              label: "Nom et prénom de l'élève",
+              value: 'CLARA LECLERC',
+              confidence: 0.98,
+              boundingBox: { x: 14, y: 32, width: 45, height: 6, label: 'Élève', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'class',
+              label: 'Classe',
+              value: 'CM2 - Classe de Primaire',
+              confidence: 0.96,
+              boundingBox: { x: 14, y: 40, width: 38, height: 5, label: 'Classe', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'school_year',
+              label: 'Année scolaire',
+              value: '2026-2027',
+              confidence: 0.99,
+              boundingBox: { x: 14, y: 48, width: 32, height: 5, label: 'Année Scolaire', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'school_name',
+              label: 'Établissement',
+              value: 'ÉCOLE ÉLÉMENTAIRE PASTEUR, LYON',
+              confidence: 0.95,
+              boundingBox: { x: 14, y: 22, width: 70, height: 6, label: 'Établissement', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'director_name',
+              label: 'Nom du directeur',
+              value: 'MME. ÉLISABETH ROUX',
+              confidence: 0.93,
+              boundingBox: { x: 55, y: 72, width: 38, height: 5, label: 'Directrice', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'document_date',
+              label: "Date d'établissement",
+              value: '02/09/2026',
+              confidence: 0.97,
+              boundingBox: { x: 58, y: 15, width: 32, height: 4, label: 'Date', type: 'field' },
+              status: 'valid'
+            }
+          ],
+          signature: {
+            detected: true,
+            confidence: 0.95,
+            handwrittenCharacteristics: true,
+            expectedZoneMatched: true,
+            boundingBox: { x: 58, y: 79, width: 32, height: 14, label: 'Signature Directrice', type: 'signature' },
+            disclaimer: 'Signature détectée — authenticité non vérifiable automatiquement sans référentiel biométrique.'
+          },
+          rawExtractionSummary: 'Certificat de scolarité valide pour l\'année 2026-2027.'
+        };
+
+      case 'sample-scolarite-mauvaise-annee':
+        return {
+          documentType: 'CERTIFICAT_SCOLARITE',
+          typeConfidence: 0.96,
+          quality: {
+            sharpnessScore: 92,
+            isBlurry: false,
+            lightingQuality: 'BONNE',
+            orientationCorrect: true,
+            framingScore: 90,
+            overallQuality: 'BONNE',
+            warnings: []
+          },
+          extractedFields: [
+            {
+              key: 'student_name',
+              label: "Nom et prénom de l'élève",
+              value: 'LÉO MOREL',
+              confidence: 0.97,
+              boundingBox: { x: 14, y: 32, width: 42, height: 6, label: 'Élève', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'class',
+              label: 'Classe',
+              value: '6ème B',
+              confidence: 0.94,
+              boundingBox: { x: 14, y: 40, width: 25, height: 5, label: 'Classe', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'school_year',
+              label: 'Année scolaire',
+              value: '2023-2024',
+              confidence: 0.68,
+              boundingBox: { x: 14, y: 48, width: 32, height: 5, label: 'Année Scolaire', type: 'field' },
+              status: 'invalid'
+            },
+            {
+              key: 'school_name',
+              label: 'Établissement',
+              value: 'COLLÈGE JEAN MOULIN, MARSEILLE',
+              confidence: 0.93,
+              boundingBox: { x: 14, y: 22, width: 68, height: 6, label: 'Établissement', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'director_name',
+              label: 'Nom du directeur',
+              value: 'M. ANTOINE GIRARD',
+              confidence: 0.90,
+              boundingBox: { x: 55, y: 72, width: 38, height: 5, label: 'Principal', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'document_date',
+              label: "Date d'établissement",
+              value: '10/09/2023',
+              confidence: 0.94,
+              boundingBox: { x: 58, y: 15, width: 32, height: 4, label: 'Date', type: 'field' },
+              status: 'warning'
+            }
+          ],
+          signature: {
+            detected: true,
+            confidence: 0.92,
+            handwrittenCharacteristics: true,
+            expectedZoneMatched: true,
+            boundingBox: { x: 58, y: 79, width: 32, height: 14, label: 'Signature Principal', type: 'signature' },
+            disclaimer: 'Signature détectée — authenticité non vérifiable automatiquement sans référentiel biométrique.'
+          },
+          rawExtractionSummary: 'Certificat de scolarité portant sur une année obsolète (2023-2024).'
+        };
+
+      case 'sample-travail-complet':
+        return {
+          documentType: 'CERTIFICAT_TRAVAIL',
+          typeConfidence: 0.97,
+          quality: {
+            sharpnessScore: 94,
+            isBlurry: false,
+            lightingQuality: 'BONNE',
+            orientationCorrect: true,
+            framingScore: 95,
+            overallQuality: 'BONNE',
+            warnings: []
+          },
+          extractedFields: [
+            {
+              key: 'employee_name',
+              label: 'Nom du salarié',
+              value: 'SOPHIE BERNARD',
+              confidence: 0.98,
+              boundingBox: { x: 14, y: 30, width: 48, height: 6, label: 'Salariée', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'employer_name',
+              label: 'Employeur / Entreprise',
+              value: 'NEXUS LOGISTICS SAS',
+              confidence: 0.96,
+              boundingBox: { x: 14, y: 20, width: 55, height: 6, label: 'Employeur', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'period_months',
+              label: 'Mois d\'activité contrôlés',
+              value: 'Janvier, Février, Mars',
+              confidence: 0.96,
+              boundingBox: { x: 14, y: 42, width: 62, height: 7, label: 'Période T1', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'work_hours',
+              label: 'Heures travaillées',
+              value: '455 heures (151.67h / mois)',
+              confidence: 0.95,
+              boundingBox: { x: 14, y: 52, width: 45, height: 5, label: 'Heures', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'document_date',
+              label: "Date d'émission",
+              value: '31/03/2026',
+              confidence: 0.96,
+              boundingBox: { x: 58, y: 14, width: 34, height: 4, label: 'Date', type: 'field' },
+              status: 'valid'
+            }
+          ],
+          signature: {
+            detected: true,
+            confidence: 0.94,
+            handwrittenCharacteristics: true,
+            expectedZoneMatched: true,
+            boundingBox: { x: 58, y: 78, width: 32, height: 14, label: 'Signature DRH', type: 'signature' },
+            disclaimer: 'Signature détectée — authenticité non vérifiable automatiquement sans référentiel biométrique.'
+          },
+          rawExtractionSummary: 'Certificat de travail trimestriel complet pour le 1er trimestre (T1).'
+        };
+
+      case 'sample-travail-incomplet':
+        return {
+          documentType: 'CERTIFICAT_TRAVAIL',
+          typeConfidence: 0.93,
+          quality: {
+            sharpnessScore: 88,
+            isBlurry: false,
+            lightingQuality: 'BONNE',
+            orientationCorrect: true,
+            framingScore: 90,
+            overallQuality: 'BONNE',
+            warnings: []
+          },
+          extractedFields: [
+            {
+              key: 'employee_name',
+              label: 'Nom du salarié',
+              value: 'ALEXANDRE VASSEUR',
+              confidence: 0.95,
+              boundingBox: { x: 14, y: 30, width: 50, height: 6, label: 'Salarié', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'employer_name',
+              label: 'Employeur / Entreprise',
+              value: 'TRANS-EUROPE LOGISTICS',
+              confidence: 0.94,
+              boundingBox: { x: 14, y: 20, width: 55, height: 6, label: 'Employeur', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'period_months',
+              label: 'Mois d\'activité contrôlés',
+              value: 'Janvier, Février (Mars non mentionné)',
+              confidence: 0.72,
+              boundingBox: { x: 14, y: 42, width: 65, height: 7, label: 'Période Incomplète', type: 'field' },
+              status: 'invalid'
+            },
+            {
+              key: 'work_hours',
+              label: 'Heures travaillées',
+              value: '302 heures (Cumul 2 mois)',
+              confidence: 0.90,
+              boundingBox: { x: 14, y: 52, width: 45, height: 5, label: 'Heures', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'document_date',
+              label: "Date d'émission",
+              value: '28/02/2026',
+              confidence: 0.93,
+              boundingBox: { x: 58, y: 14, width: 34, height: 4, label: 'Date', type: 'field' },
+              status: 'valid'
+            }
+          ],
+          signature: {
+            detected: true,
+            confidence: 0.91,
+            handwrittenCharacteristics: true,
+            expectedZoneMatched: true,
+            boundingBox: { x: 58, y: 78, width: 32, height: 14, label: 'Signature Employeur', type: 'signature' },
+            disclaimer: 'Signature détectée — authenticité non vérifiable automatiquement sans référentiel biométrique.'
+          },
+          rawExtractionSummary: 'Certificat de travail incomplet : le mois de Mars est manquant pour le 1er trimestre.'
+        };
+
+      case 'sample-vie-charge-sans-signature':
+        return {
+          documentType: 'CERTIFICAT_VIE_CHARGE',
+          typeConfidence: 0.94,
+          quality: {
+            sharpnessScore: 92,
+            isBlurry: false,
+            lightingQuality: 'BONNE',
+            orientationCorrect: true,
+            framingScore: 92,
+            overallQuality: 'BONNE',
+            warnings: []
+          },
+          extractedFields: [
+            {
+              key: 'guardian_name',
+              label: 'Nom du parent / tuteur',
+              value: 'NATHALIE MERCIER',
+              confidence: 0.96,
+              boundingBox: { x: 14, y: 28, width: 45, height: 6, label: 'Tuteur / Déclarante', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'dependents_list',
+              label: 'Enfants / Personnes à charge',
+              value: 'THÉO MERCIER (Né le 14/07/2017), LÉA MERCIER (Née le 22/11/2020)',
+              confidence: 0.94,
+              boundingBox: { x: 14, y: 40, width: 75, height: 12, label: 'Enfants à charge', type: 'field' },
+              status: 'valid'
+            },
+            {
+              key: 'document_date',
+              label: "Date d'établissement",
+              value: '18/02/2026',
+              confidence: 0.95,
+              boundingBox: { x: 55, y: 16, width: 35, height: 4, label: 'Date', type: 'field' },
+              status: 'valid'
+            }
+          ],
+          signature: {
+            detected: false,
+            confidence: 0.05,
+            handwrittenCharacteristics: false,
+            expectedZoneMatched: false,
+            disclaimer: 'Signature absente : l\'emplacement prévu pour la signature est vide.'
+          },
+          rawExtractionSummary: 'Certificat de vie et de charge non signé par le déclarant.'
+        };
+
+      case 'sample-flou':
+        return {
+          documentType: 'CERTIFICAT_SCOLARITE',
+          typeConfidence: 0.62,
+          quality: {
+            sharpnessScore: 38,
+            isBlurry: true,
+            lightingQuality: 'FAIBLE',
+            orientationCorrect: false,
+            framingScore: 45,
+            overallQuality: 'INSUFFISANTE',
+            warnings: ['Image floue / bougée : les caractères OCR ne peuvent être garantis.']
+          },
+          extractedFields: [
+            {
+              key: 'student_name',
+              label: "Nom et prénom de l'élève",
+              value: 'J*** D*** (?)',
+              confidence: 0.42,
+              boundingBox: { x: 14, y: 32, width: 45, height: 6, label: 'Élève (Flou)', type: 'field' },
+              status: 'invalid'
+            },
+            {
+              key: 'class',
+              label: 'Classe',
+              value: 'C** (?)',
+              confidence: 0.35,
+              boundingBox: { x: 14, y: 40, width: 28, height: 5, label: 'Classe', type: 'field' },
+              status: 'invalid'
+            },
+            {
+              key: 'school_year',
+              label: 'Année scolaire',
+              value: '202?-202?',
+              confidence: 0.38,
+              boundingBox: { x: 14, y: 48, width: 32, height: 5, label: 'Année', type: 'field' },
+              status: 'invalid'
+            }
+          ],
+          signature: {
+            detected: false,
+            confidence: 0.20,
+            handwrittenCharacteristics: false,
+            expectedZoneMatched: false,
+            disclaimer: 'Impossible d\'évaluer la signature en raison du flou excessif.'
+          },
+          rawExtractionSummary: 'Qualité d\'image insuffisante pour procéder à l\'analyse OCR.'
+        };
+
+      default:
+        return null;
+    }
+  }
 }
+

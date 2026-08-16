@@ -45,6 +45,7 @@ async function startServer() {
         imageBase64, 
         documentTypeOverride, 
         configOverride,
+        sampleId,
         agentName = 'Julien Dubois',
         agentId = 'AGT-001'
       } = req.body;
@@ -67,7 +68,8 @@ async function startServer() {
       const aiResult = await GeminiDocumentService.analyzeDocument(
         imageBase64,
         'image/jpeg',
-        documentTypeOverride as DocumentType
+        documentTypeOverride as DocumentType,
+        sampleId
       );
 
       // Étape 2 : Moteur de règles métier indépendant

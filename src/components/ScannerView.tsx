@@ -27,6 +27,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFileName, setImageFileName] = useState<string>('');
+  const [currentSampleId, setCurrentSampleId] = useState<string | undefined>(undefined);
+  const [isDragging, setIsDragging] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -50,6 +52,15 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Nettoyage de la caméra au démontage
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
 
   // Étapes d'analyse pour la barre de progression
   const ANALYSIS_STEPS = [
@@ -90,6 +101,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   };
 
   const capturePhoto = () => {
+    setCurrentSampleId(undefined);
     if (videoRef.current && cameraStream) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth || 800;
@@ -115,6 +127,24 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setCurrentSampleId(undefined);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setSelectedImage(result);
+        setImageFileName(file.name);
+        evaluateImageQuality();
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      setCurrentSampleId(undefined);
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result as string;
@@ -127,7 +157,6 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   };
 
   const evaluateImageQuality = () => {
-    // Analyse rapide locale de qualité
     setQualityFeedback({
       score: 94,
       isBlurry: false,
@@ -143,7 +172,6 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     setIsAnalyzing(true);
     setAnalysisStep(0);
 
-    // Simulation des étapes visuelles fluides
     const stepInterval = setInterval(() => {
       setAnalysisStep(prev => {
         if (prev < 4) return prev + 1;
@@ -154,6 +182,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     try {
       const payload = {
         imageBase64: selectedImage,
+        sampleId: currentSampleId,
         documentTypeOverride: targetTypeOverride !== 'AUTO' ? targetTypeOverride : undefined,
         configOverride: {
           schoolCert: { targetSchoolYear },
@@ -194,6 +223,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   const loadSample = (sampleId: string) => {
     const s = SAMPLE_DOCUMENTS.find(item => item.id === sampleId);
     if (s) {
+      setCurrentSampleId(sampleId);
       const img = s.generateImage();
       setSelectedImage(img);
       setImageFileName(s.title);
@@ -224,7 +254,14 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   {/* Zone de Drag & Drop */}
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 rounded-xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center text-center group min-h-[220px]"
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center text-center group min-h-[220px] ${
+                      isDragging 
+                        ? 'border-blue-600 bg-blue-50/80 scale-[0.99]' 
+                        : 'border-slate-300 hover:border-blue-500 hover:bg-blue-50/40'
+                    }`}
                   >
                     <input
                       ref={fileInputRef}
@@ -248,7 +285,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   <div className="flex gap-3">
                     <button
                       onClick={startCamera}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 transition-colors cursor-pointer"
                     >
                       <Camera className="w-4 h-4" />
                       Ouvrir la Caméra (CameraX Live)
@@ -283,13 +320,13 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                   <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-4 z-10">
                     <button
                       onClick={stopCamera}
-                      className="px-4 py-2 bg-slate-800/80 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 backdrop-blur"
+                      className="px-4 py-2 bg-slate-800/80 text-white text-xs font-semibold rounded-lg hover:bg-slate-700 backdrop-blur cursor-pointer"
                     >
                       Annuler
                     </button>
                     <button
                       onClick={capturePhoto}
-                      className="w-14 h-14 rounded-full bg-white border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                      className="w-14 h-14 rounded-full bg-white border-4 border-blue-500 shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer"
                     >
                       <div className="w-10 h-10 rounded-full bg-blue-600"></div>
                     </button>
@@ -306,24 +343,45 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   onClick={() => loadSample('sample-scolarite-conforme')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                   <span className="truncate">Scolarité (2026-2027)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-travail-complet')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
                 >
                   <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                   <span className="truncate">Travail T1 (Complet)</span>
                 </button>
                 <button
                   onClick={() => loadSample('sample-scolarite-mauvaise-annee')}
-                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate"
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
                 >
                   <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
                   <span className="truncate">Scolarité (2023-2024 ⚠)</span>
+                </button>
+                <button
+                  onClick={() => loadSample('sample-travail-incomplet')}
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                >
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                  <span className="truncate">Travail T1 (Incomplet)</span>
+                </button>
+                <button
+                  onClick={() => loadSample('sample-vie-charge-sans-signature')}
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                  <span className="truncate">Vie Charge (Sans Sign.)</span>
+                </button>
+                <button
+                  onClick={() => loadSample('sample-flou')}
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50/50 rounded-lg text-left text-xs font-medium text-slate-700 transition-all flex items-center gap-2 truncate cursor-pointer"
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                  <span className="truncate">Photo Floue / Bougée</span>
                 </button>
               </div>
             </div>

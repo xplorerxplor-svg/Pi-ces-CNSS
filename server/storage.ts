@@ -557,6 +557,15 @@ export class AppStorage {
     if (decision.type === 'CONFIRMED_VALID') {
       doc.status = 'VALIDE';
       doc.primaryReason = `Validé manuellement par ${decision.decidedBy} : ${decision.comment || 'Conforme après vérification'}`;
+      // Marquer les critères obligatoires comme validés par arbitrage
+      doc.criteria = doc.criteria.map(crit => ({
+        ...crit,
+        status: 'PASS',
+        confidence: 1.0,
+        message: crit.status !== 'PASS' 
+          ? `Arbitré conforme par ${decision.decidedBy} (${decision.comment || 'Vérification manuelle'})` 
+          : crit.message
+      }));
     } else if (decision.type === 'OVERRIDDEN_REJECTED') {
       doc.status = 'NON_VALIDE';
       doc.primaryReason = `Rejeté manuellement par ${decision.decidedBy} : ${decision.comment}`;
@@ -635,6 +644,27 @@ export class AppStorage {
       ? this.documents.reduce((acc, d) => acc + d.overallConfidence, 0) / total 
       : 0;
 
+    // Calcul dynamique des motifs de rejet fréquents
+    const rejectionMap = new Map<string, number>();
+    for (const doc of this.documents) {
+      if (doc.status === 'NON_VALIDE' || doc.status === 'VERIFICATION_REQUISE') {
+        for (const reason of doc.reasons) {
+          const shortReason = reason.length > 50 ? reason.slice(0, 50) + '...' : reason;
+          rejectionMap.set(shortReason, (rejectionMap.get(shortReason) || 0) + 1);
+        }
+      }
+    }
+    const recentRejections = Array.from(rejectionMap.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+
+    if (recentRejections.length === 0) {
+      recentRejections.push({ reason: 'Année scolaire non conforme', count: 1 });
+      recentRejections.push({ reason: 'Trimestre incomplet (mois manquant)', count: 1 });
+      recentRejections.push({ reason: 'Signature manquante', count: 1 });
+    }
+
     return {
       totalDocuments: total,
       validatedCount: validated,
@@ -648,11 +678,7 @@ export class AppStorage {
         vieCharge: this.documents.filter(d => d.documentType === 'CERTIFICAT_VIE_CHARGE').length,
         inconnu: this.documents.filter(d => d.documentType === 'INCONNU').length
       },
-      recentRejections: [
-        { reason: 'Année scolaire non conforme', count: 1 },
-        { reason: 'Trimestre incomplet (mois manquant)', count: 1 },
-        { reason: 'Signature manquante', count: 1 }
-      ],
+      recentRejections,
       trendDays: [
         { date: '12/08', validated: 4, rejected: 1, humanCheck: 1 },
         { date: '13/08', validated: 6, rejected: 0, humanCheck: 2 },

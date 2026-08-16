@@ -201,35 +201,27 @@ export const DashboardView: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800">
-                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                Année scolaire antérieure ou incohérente
+            {stats.recentRejections && stats.recentRejections.length > 0 ? (
+              stats.recentRejections.map((item, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800">
+                    <span className={`w-2 h-2 rounded-full ${
+                      idx === 0 ? 'bg-rose-500' : idx === 1 ? 'bg-amber-500' : 'bg-purple-500'
+                    }`}></span>
+                    {item.reason}
+                  </div>
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${
+                    idx === 0 ? 'bg-rose-100 text-rose-700' : idx === 1 ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {item.count} dossier{item.count > 1 ? 's' : ''}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-xs text-slate-400 text-center py-4">
+                Aucune anomalie répertoriée pour le moment.
               </div>
-              <span className="text-xs font-mono font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded">
-                1 anomalie
-              </span>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800">
-                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                Mois manquant dans le trimestre de travail
-              </div>
-              <span className="text-xs font-mono font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                1 anomalie
-              </span>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-800">
-                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                Signature absente ou non identifiée
-              </div>
-              <span className="text-xs font-mono font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
-                1 anomalie
-              </span>
-            </div>
+            )}
           </div>
         </div>
 
